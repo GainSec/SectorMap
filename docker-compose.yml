@@ -1,0 +1,13 @@
+services:
+  sectormap:
+    build: .
+    image: ghcr.io/your-org/sectormap-web:latest
+    restart: unless-stopped
+    ports:
+      - "${SECTORMAP_PORT:-3737}:3737"
+    environment:
+      PORT: 3737
+      SECTORMAP_DATA_DIR: /app/data
+      SECTORMAP_STATIC_DIR: /app/app/static
+    volumes:
+      - ./data:/app/data

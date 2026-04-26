@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Archive Management Dashboard</title>
+<link href="/assets/favicon.ico" rel="icon" sizes="any"/>
+<link href="/assets/favicon.png" rel="icon" type="image/png"/>
+<link href="assets/css/fonts.css" rel="stylesheet"/>
+<link href="assets/css/admin-dashboard.css" rel="stylesheet"/>
+<style>
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(0, 229, 255, 0.12), transparent 26%),
+                radial-gradient(circle at bottom left, rgba(255, 42, 109, 0.08), transparent 22%),
+                #050914;
+            color: #E0F7FA;
+            font-family: "Space Grotesk", sans-serif;
+        }
+        .glass-panel {
+            background: rgba(16, 28, 48, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(74, 107, 140, 0.7);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+<div class="mx-auto max-w-7xl px-6 py-8">
+<header class="glass-panel shadow-glow px-6 py-5 flex items-start justify-between gap-6">
+<div>
+<p class="font-heading text-xs uppercase tracking-[0.35em] text-primary">Manage</p>
+<h1 class="font-heading text-4xl text-text-main">Archive Management Dashboard</h1>
+<p class="mt-2 max-w-3xl text-sm text-text-main/70">Inspect, classify, annotate, and export records from the archive dataset. This is the operational layer for data quality and record management.</p>
+</div>
+<a class="inline-flex items-center gap-2 border border-muted px-3 py-2 text-xs uppercase tracking-[0.25em] text-primary hover:bg-primary/10" href="/">
+<span class="material-symbols-outlined text-base">arrow_back</span>
+Return
+</a>
+</header>
+
+<main class="mt-8 grid grid-cols-12 gap-6">
+<section class="glass-panel col-span-12 lg:col-span-3 p-5">
+<p class="font-heading text-xs uppercase tracking-[0.3em] text-primary">Dataset Overview</p>
+<div class="mt-5 space-y-4 font-mono text-sm">
+<div class="border border-muted/70 p-4">
+<p class="text-muted uppercase tracking-[0.2em] text-[10px]">Records</p>
+<p class="mt-2 text-3xl text-text-main" id="stat-records">-</p>
+</div>
+<div class="border border-muted/70 p-4">
+<p class="text-muted uppercase tracking-[0.2em] text-[10px]">Sources</p>
+<p class="mt-2 text-3xl text-text-main" id="stat-sources">-</p>
+</div>
+<div class="border border-muted/70 p-4">
+<p class="text-muted uppercase tracking-[0.2em] text-[10px]">Types</p>
+<p class="mt-2 text-3xl text-accent" id="stat-types">-</p>
+</div>
+</div>
+<div class="mt-6">
+<p class="font-heading text-xs uppercase tracking-[0.3em] text-primary">Top Sources</p>
+<div class="mt-3 space-y-2 text-xs font-mono" id="source-list"></div>
+</div>
+<div class="mt-6 border border-muted/70 p-4" id="database-panel">
+<div class="flex items-center justify-between gap-3">
+<div>
+<p class="font-heading text-xs uppercase tracking-[0.3em] text-primary">Databases</p>
+<p class="mt-1 text-[11px] text-text-main/60">Switch, create, reset, or import local archives.</p>
+</div>
+<button class="border border-muted px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-primary hover:bg-primary/10" id="refresh-databases-button" type="button">Refresh</button>
+</div>
+<div class="mt-4 border border-muted/50 px-3 py-3">
+<p class="text-[10px] uppercase tracking-[0.22em] text-muted">Active DB</p>
+<p class="mt-2 font-mono text-sm text-text-main" id="active-database-name">-</p>
+</div>
+<div class="mt-4 space-y-2" id="database-list"></div>
+<div class="mt-4 grid gap-2">
+<input class="border border-muted bg-background-dark/70 px-3 py-2 text-xs uppercase tracking-[0.18em] text-text-main outline-none focus:border-primary" id="new-database-input" placeholder="New database name" type="text"/>
+<div class="grid grid-cols-2 gap-2">
+<button class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.22em] text-primary hover:bg-primary/10" id="create-database-button" type="button">Create</button>
+<button class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.22em] text-accent hover:bg-accent/10" id="reset-database-button" type="button">Reset Active</button>
+</div>
+<input accept=".csv,.db,.sqlite,.sqlite3,text/csv,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream" class="hidden" id="database-import-file" type="file"/>
+<button class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.22em] text-primary hover:bg-primary/10" id="database-import-button" type="button">Import CSV/DB to New DB</button>
+</div>
+</div>
+</section>
+
+<section class="glass-panel col-span-12 lg:col-span-9 p-5">
+<div class="flex items-center justify-between gap-4">
+<div>
+<p class="font-heading text-xs uppercase tracking-[0.3em] text-primary">Recent Records</p>
+<p class="mt-1 text-sm text-text-main/65">SQLite-backed management surface for reviewing, filtering, and exporting archive records.</p>
+</div>
+<div class="flex gap-2">
+<input class="border border-muted bg-background-dark/70 px-3 py-2 text-xs uppercase tracking-[0.18em] text-text-main outline-none focus:border-primary" id="record-search" placeholder="Search archive" type="search"/>
+<input class="border border-muted bg-background-dark/70 px-3 py-2 text-xs uppercase tracking-[0.18em] text-text-main outline-none focus:border-primary" id="new-type-input" placeholder="Add type" type="text"/>
+<button class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.25em] text-primary hover:bg-primary/10" id="add-type-button" type="button">Add Type</button>
+<button class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.25em] text-primary hover:bg-primary/10 disabled:opacity-40" disabled id="export-selected-button" type="button">Export Selected</button>
+<a class="border border-muted px-3 py-2 text-xs uppercase tracking-[0.25em] text-primary hover:bg-primary/10" href="/api/export">Export All</a>
+</div>
+</div>
+<div class="mt-6 overflow-hidden border border-muted/70">
+<div class="grid grid-cols-[80px_1.4fr_2fr_1fr_1fr] bg-primary/10 px-4 py-3 font-heading text-xs uppercase tracking-[0.25em] text-primary">
+<span>Select</span>
+<span>Title</span>
+<span>Description</span>
+<span>Type</span>
+<span>Tags</span>
+</div>
+<div class="divide-y divide-muted/40" id="records-table"></div>
+</div>
+</section>
+</main>
+<footer class="mt-6 text-center text-[10px] uppercase tracking-[0.22em] text-text-main/45">
+<a class="hover:text-primary underline decoration-primary/20 underline-offset-2" href="https://gainsec.com/" rel="noreferrer" target="_blank">Made by Jon 'GainSec' Gaines</a>
+</footer>
+</div>
+<script>
+        const numberFormat = new Intl.NumberFormat("en-US");
+        const allowedTypes = [
+            "firmware analysis",
+            "reverse engineering",
+            "web application",
+            "mobile application",
+            "RF",
+            "embedded systems",
+            "IoT",
+            "hardware",
+            "software",
+            "fuzzing",
+            "debug interfaces",
+            "internal networks",
+            "external networks",
+            "cloud",
+            "host based",
+            "OSINT",
+            "social engineering",
+            "red team",
+            "wireless",
+            "physical",
+        ];
+        const statusPalette = {
+            git_gainpalfam: "text-primary",
+            discord_etc_3mo: "text-accent",
+        };
+        const statRecords = document.getElementById("stat-records");
+        const statSources = document.getElementById("stat-sources");
+        const statTypes = document.getElementById("stat-types");
+        const sourceList = document.getElementById("source-list");
+        const activeDatabaseName = document.getElementById("active-database-name");
+        const databaseList = document.getElementById("database-list");
+        const refreshDatabasesButton = document.getElementById("refresh-databases-button");
+        const newDatabaseInput = document.getElementById("new-database-input");
+        const createDatabaseButton = document.getElementById("create-database-button");
+        const resetDatabaseButton = document.getElementById("reset-database-button");
+        const databaseImportFile = document.getElementById("database-import-file");
+        const databaseImportButton = document.getElementById("database-import-button");
+        const recordsTable = document.getElementById("records-table");
+        const recordSearch = document.getElementById("record-search");
+        const newTypeInput = document.getElementById("new-type-input");
+        const addTypeButton = document.getElementById("add-type-button");
+        const exportSelectedButton = document.getElementById("export-selected-button");
+        let currentRecords = [];
+        let editingRecordId = null;
+        let availableTypes = [...allowedTypes];
+        let currentDatabases = [];
+        const selectedRecordIds = new Set();
+
+        function renderSources(sources) {
+            sourceList.innerHTML = "";
+            sources.slice(0, 5).forEach((entry) => {
+                const row = document.createElement("div");
+                row.className = "flex items-center justify-between border border-muted/50 px-3 py-2";
+                row.innerHTML = `
+                    <span class="text-text-main/80">${entry.source}</span>
+                    <span class="text-primary">${numberFormat.format(entry.count)}</span>
+                `;
+                sourceList.appendChild(row);
+            });
+        }
+
+        function renderDatabases(payload) {
+            const databases = payload?.databases || [];
+            currentDatabases = databases;
+            activeDatabaseName.textContent = payload?.active?.name || "archive";
+            databaseList.innerHTML = "";
+            databases.forEach((entry) => {
+                const row = document.createElement("div");
+                row.className = "border border-muted/50 px-3 py-2";
+                row.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="font-mono text-xs text-text-main">${escapeHtml(entry.name)}</p>
+                            <p class="mt-1 text-[10px] uppercase tracking-[0.18em] ${entry.active ? "text-primary" : "text-text-main/45"}">${entry.active ? "Active" : `${numberFormat.format(entry.size_bytes || 0)} bytes`}</p>
+                        </div>
+                        <button class="border border-muted px-2 py-1 text-[10px] uppercase tracking-[0.18em] ${entry.active ? "text-text-main/45" : "text-primary hover:bg-primary/10"}" ${entry.active ? "disabled" : ""} data-switch-database="${escapeAttribute(entry.name)}" type="button">${entry.active ? "Current" : "Switch"}</button>
+                    </div>
+                `;
+                databaseList.appendChild(row);
+            });
+        }
+
+        function renderRecords(records) {
+            currentRecords = records;
+            recordsTable.innerHTML = "";
+            records.forEach((record) => {
+                const row = document.createElement("div");
+                row.className = "grid grid-cols-[80px_1.4fr_2fr_1fr_1fr] px-4 py-4 text-sm text-text-main hover:bg-primary/5";
+                row.dataset.recordId = String(record.id);
+                const typeText = record.type || "";
+                const tagsText = record.tags || "";
+                const sourceClass = statusPalette[record.source] || "text-text-main/55";
+                if (editingRecordId === record.id) {
+                    row.innerHTML = `
+                        <div class="pr-4 flex items-start pt-1">
+                            <input ${selectedRecordIds.has(record.id) ? "checked" : ""} class="h-4 w-4 accent-cyan-300" data-select-record="${record.id}" type="checkbox"/>
+                        </div>
+                        <div class="pr-4">
+                            <input class="w-full border border-primary/30 bg-background-dark/80 px-3 py-2 text-sm text-text-main outline-none focus:border-primary" data-edit-title="${record.id}" type="text" value="${escapeAttribute(record.title || "")}"/>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button class="border border-primary/40 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-primary/10" data-save-record="${record.id}" type="button">Save</button>
+                                <button class="border border-muted px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-text-main/70 hover:bg-white/5" data-cancel-record="${record.id}" type="button">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="text-text-main/70 pr-4">
+                            <textarea class="min-h-[96px] w-full border border-primary/30 bg-background-dark/80 px-3 py-2 text-sm text-text-main outline-none focus:border-primary" data-edit-description="${record.id}">${escapeHtml(record.description || "")}</textarea>
+                            <span class="mt-1 block font-mono text-[11px] ${sourceClass}">${record.source || "unknown"}</span>
+                        </div>
+                        <div class="pr-4">
+                            <select class="w-full border border-primary/30 bg-background-dark/80 px-3 py-2 text-xs text-text-main outline-none focus:border-primary" data-edit-type="${record.id}">
+                                <option value="">Untyped</option>
+                                ${renderTypeOptions(typeText)}
+                            </select>
+                        </div>
+                        <div>
+                            <input class="w-full border border-primary/30 bg-background-dark/80 px-3 py-2 font-mono text-xs text-text-main outline-none focus:border-primary" data-edit-tags="${record.id}" type="text" value="${escapeAttribute(tagsText)}"/>
+                            <p class="mt-2 text-[11px] text-text-main/45">Comma-separated tags</p>
+                        </div>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <div class="pr-4 flex items-start pt-1">
+                            <input ${selectedRecordIds.has(record.id) ? "checked" : ""} class="h-4 w-4 accent-cyan-300" data-select-record="${record.id}" type="checkbox"/>
+                        </div>
+                        <div class="pr-4">
+                            <a class="font-medium text-text-main hover:text-primary hover:underline" href="${record.url}" rel="noreferrer" target="_blank">${escapeHtml(record.title || "Untitled")}</a>
+                            <div class="mt-2">
+                                <button class="border border-primary/40 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-primary hover:bg-primary/10" data-edit-record="${record.id}" type="button">Edit</button>
+                            </div>
+                        </div>
+                        <div class="text-text-main/70 pr-4">
+                            ${escapeHtml(record.description || "No description loaded.")}
+                            <span class="mt-1 block font-mono text-[11px] ${sourceClass}">${record.source || "unknown"}</span>
+                        </div>
+                        <div>${renderTypeChip(typeText)}</div>
+                        <div class="flex flex-wrap gap-2">${renderTagChips(tagsText)}</div>
+                    `;
+                }
+                recordsTable.appendChild(row);
+            });
+            updateSelectionState();
+        }
+
+        function renderTypeOptions(selectedType) {
+            return availableTypes
+                .map((type) => `<option value="${type}" ${type === selectedType ? "selected" : ""}>${type}</option>`)
+                .join("");
+        }
+
+        function renderTypeChip(typeText) {
+            if (!typeText) {
+                return '<span class="inline-flex items-center border border-muted/60 px-2 py-1 font-mono text-[11px] text-text-main/45">untyped</span>';
+            }
+            return `<span class="inline-flex items-center border border-primary/30 bg-primary/10 px-2 py-1 font-mono text-[11px] text-primary">${typeText}</span>`;
+        }
+
+        function renderTagChips(tagsText) {
+            if (!tagsText || tagsText === "\u2014") {
+                return '<span class="inline-flex items-center border border-muted/60 px-2 py-1 font-mono text-[11px] text-text-main/45">untagged</span>';
+            }
+            return tagsText
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .slice(0, 6)
+                .map((tag) => `<span class="inline-flex items-center border border-primary/30 bg-primary/10 px-2 py-1 font-mono text-[11px] text-primary">${tag}</span>`)
+                .join("");
+        }
+
+        function escapeHtml(value) {
+            return value
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;");
+        }
+
+        function escapeAttribute(value) {
+            return value
+                .replaceAll("&", "&amp;")
+                .replaceAll("\"", "&quot;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;");
+        }
+
+        function updateSelectionState() {
+            exportSelectedButton.disabled = selectedRecordIds.size === 0;
+            exportSelectedButton.textContent = selectedRecordIds.size === 0
+                ? "Export Selected"
+                : `Export Selected (${selectedRecordIds.size})`;
+        }
+
+        async function loadTypes() {
+            const response = await fetch("/api/types");
+            const payload = await response.json();
+            availableTypes = payload.types || [];
+        }
+
+        async function loadDatabases() {
+            const response = await fetch("/api/databases");
+            if (!response.ok) {
+                throw new Error(`Database list failed with status ${response.status}`);
+            }
+            const payload = await response.json();
+            renderDatabases(payload);
+        }
+
+        async function switchDatabase(name) {
+            const response = await fetch("/api/databases/switch", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name }),
+            });
+            if (!response.ok) {
+                throw new Error(`Database switch failed with status ${response.status}`);
+            }
+            await loadDatabases();
+            await Promise.all([loadTypes(), loadStats(), loadRecords(recordSearch.value.trim())]);
+        }
+
+        async function createDatabase() {
+            const name = newDatabaseInput.value.trim();
+            if (!name) {
+                return;
+            }
+            const response = await fetch("/api/databases", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name }),
+            });
+            if (!response.ok) {
+                throw new Error(`Database create failed with status ${response.status}`);
+            }
+            newDatabaseInput.value = "";
+            await loadDatabases();
+            await Promise.all([loadTypes(), loadStats(), loadRecords()]);
+        }
+
+        async function resetActiveDatabase() {
+            if (!window.confirm("Reset the active database? This will wipe all records in the current archive.")) {
+                return;
+            }
+            const response = await fetch("/api/databases/reset", {
+                method: "POST",
+            });
+            if (!response.ok) {
+                throw new Error(`Database reset failed with status ${response.status}`);
+            }
+            await loadDatabases();
+            await Promise.all([loadTypes(), loadStats(), loadRecords()]);
+        }
+
+        async function importDatabase(file) {
+            const targetName = window.prompt("Name for the imported database?", file.name.replace(/\.(csv|db|sqlite|sqlite3)$/i, ""))?.trim();
+            if (!targetName) {
+                return;
+            }
+            const formData = new FormData();
+            formData.append("name", targetName);
+            formData.append("file", file);
+            const response = await fetch("/api/databases/import", {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) {
+                throw new Error(`Database import failed with status ${response.status}`);
+            }
+            databaseImportFile.value = "";
+            await loadDatabases();
+            await Promise.all([loadTypes(), loadStats(), loadRecords()]);
+        }
+
+        async function createType() {
+            const name = newTypeInput.value.trim().toLowerCase();
+            if (!name) {
+                return;
+            }
+            const response = await fetch("/api/types", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name }),
+            });
+            if (!response.ok) {
+                throw new Error(`Type create failed with status ${response.status}`);
+            }
+            await loadTypes();
+            newTypeInput.value = "";
+            renderRecords(currentRecords);
+        }
+
+        async function saveRecord(recordId) {
+            const titleField = document.querySelector(`[data-edit-title="${recordId}"]`);
+            const descriptionField = document.querySelector(`[data-edit-description="${recordId}"]`);
+            const typeField = document.querySelector(`[data-edit-type="${recordId}"]`);
+            const tagsField = document.querySelector(`[data-edit-tags="${recordId}"]`);
+            const response = await fetch(`/api/records/${recordId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: titleField?.value || "",
+                    description: descriptionField?.value || "",
+                    type: typeField?.value || "",
+                    tags: tagsField?.value || "",
+                }),
+            });
+            if (!response.ok) {
+                throw new Error(`Save failed with status ${response.status}`);
+            }
+            const updated = await response.json();
+            currentRecords = currentRecords.map((record) => (record.id === updated.id ? updated : record));
+            editingRecordId = null;
+            renderRecords(currentRecords);
+            loadStats().catch(console.error);
+        }
+
+        async function loadStats() {
+            const response = await fetch("/api/stats");
+            const stats = await response.json();
+            statRecords.textContent = numberFormat.format(stats.total_records);
+            statSources.textContent = numberFormat.format(stats.total_sources);
+            statTypes.textContent = numberFormat.format(stats.total_types);
+            renderSources(stats.top_sources || []);
+        }
+
+        async function loadRecords(query = "") {
+            const params = new URLSearchParams({ limit: "20" });
+            if (query) {
+                params.set("q", query);
+            }
+            const response = await fetch(`/api/records?${params.toString()}`);
+            const payload = await response.json();
+            renderRecords(payload.records || []);
+        }
+
+        let searchTimer = null;
+        recordSearch.addEventListener("input", () => {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => {
+                loadRecords(recordSearch.value.trim()).catch(console.error);
+            }, 140);
+        });
+        addTypeButton.addEventListener("click", () => {
+            createType().catch(console.error);
+        });
+        refreshDatabasesButton.addEventListener("click", () => {
+            loadDatabases().catch(console.error);
+        });
+        createDatabaseButton.addEventListener("click", () => {
+            createDatabase().catch(console.error);
+        });
+        resetDatabaseButton.addEventListener("click", () => {
+            resetActiveDatabase().catch(console.error);
+        });
+        databaseImportButton.addEventListener("click", () => {
+            databaseImportFile.click();
+        });
+        databaseImportFile.addEventListener("change", () => {
+            const [file] = databaseImportFile.files || [];
+            if (file) {
+                importDatabase(file).catch(console.error);
+            }
+        });
+        newTypeInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                createType().catch(console.error);
+            }
+        });
+        newDatabaseInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                createDatabase().catch(console.error);
+            }
+        });
+        exportSelectedButton.addEventListener("click", () => {
+            if (selectedRecordIds.size === 0) {
+                return;
+            }
+            const ids = Array.from(selectedRecordIds).join(",");
+            window.location.href = `/api/export?ids=${encodeURIComponent(ids)}`;
+        });
+        recordsTable.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const editButton = target.closest("[data-edit-record]");
+            if (editButton) {
+                editingRecordId = Number(editButton.getAttribute("data-edit-record"));
+                renderRecords(currentRecords);
+                return;
+            }
+            const cancelButton = target.closest("[data-cancel-record]");
+            if (cancelButton) {
+                editingRecordId = null;
+                renderRecords(currentRecords);
+                return;
+            }
+            const saveButton = target.closest("[data-save-record]");
+            if (saveButton) {
+                saveRecord(Number(saveButton.getAttribute("data-save-record"))).catch(console.error);
+                return;
+            }
+            const switchDatabaseButton = target.closest("[data-switch-database]");
+            if (switchDatabaseButton) {
+                switchDatabase(switchDatabaseButton.getAttribute("data-switch-database")).catch(console.error);
+            }
+        });
+        recordsTable.addEventListener("change", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement)) {
+                return;
+            }
+            if (target.matches("[data-select-record]")) {
+                const recordId = Number(target.getAttribute("data-select-record"));
+                if (target.checked) {
+                    selectedRecordIds.add(recordId);
+                } else {
+                    selectedRecordIds.delete(recordId);
+                }
+                updateSelectionState();
+            }
+        });
+
+        Promise.all([loadDatabases(), loadTypes(), loadStats(), loadRecords()]).catch(console.error);
+    </script>
+</body></html>

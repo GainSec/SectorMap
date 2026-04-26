@@ -1,0 +1,16 @@
+.git
+.github
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.DS_Store
+.venv
+venv
+node_modules
+app/data/*.db
+app/data/*.db-shm
+app/data/*.db-wal
+app/data/active_db.json
+data

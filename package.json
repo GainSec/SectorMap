@@ -1,0 +1,17 @@
+{
+  "name": "sectormap-web-release",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Offline asset build for the SectorMap web release bundle.",
+  "scripts": {
+    "build:css:main": "tailwindcss -c tailwind/main.config.js -i tailwind/main.css -o app/static/assets/css/main-operations.css --minify",
+    "build:css:galaxy": "tailwindcss -c tailwind/galaxy.config.js -i tailwind/galaxy.css -o app/static/assets/css/galaxy-view.css --minify",
+    "build:css:admin": "tailwindcss -c tailwind/admin.config.js -i tailwind/admin.css -o app/static/assets/css/admin-dashboard.css --minify",
+    "build:css": "npm run build:css:main && npm run build:css:galaxy && npm run build:css:admin"
+  },
+  "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.10",
+    "tailwindcss": "^3.4.17"
+  }
+}

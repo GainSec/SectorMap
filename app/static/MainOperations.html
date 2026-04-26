@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sector Map</title>
+<link href="/assets/favicon.ico" rel="icon" sizes="any"/>
+<link href="/assets/favicon.png" rel="icon" type="image/png"/>
+<link href="assets/css/fonts.css" rel="stylesheet"/>
+<link href="assets/css/main-operations.css" rel="stylesheet"/>
+<style>
+        body {
+            transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease;
+        }
+        body.page-fade-out {
+            opacity: 0;
+            transform: scale(0.985);
+            filter: blur(4px);
+        }
+        .crt-scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+        .wood-texture {
+            background-color: #5C3A21;
+            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
+        }
+        .cardboard-texture {
+            background-color: #CDBA96;
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 4px);
+        }
+        .mode-indicator {
+            transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease, opacity 140ms ease;
+        }
+        .mode-indicator:hover {
+            transform: translateY(-1px);
+        }
+        .mode-indicator[data-active="false"] {
+            opacity: 0.85;
+        }
+        .terminal-mode-line {
+            min-height: 1.8rem;
+            letter-spacing: 0.18em;
+        }
+        @media (max-width: 768px) {
+            body {
+                justify-content: flex-start;
+            }
+            .mobile-tight-panel {
+                gap: 0.85rem;
+            }
+            .mobile-monitor {
+                padding: 0.85rem;
+                border-radius: 1.35rem;
+            }
+            .mobile-ignition {
+                padding: 0.85rem;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 0.85rem;
+            }
+            .mobile-header-card {
+                max-width: 20rem;
+                padding: 0.85rem 0.9rem;
+            }
+            .mobile-monitor {
+                max-width: 20.5rem;
+            }
+            .mobile-monitor-screen {
+                aspect-ratio: 1.18 / 1;
+            }
+            .mobile-crt-copy {
+                font-size: 0.95rem;
+                line-height: 1.35;
+                margin-bottom: 0.55rem;
+            }
+            .mobile-crt-copy + .mobile-crt-copy {
+                margin-bottom: 1rem;
+            }
+            .mobile-crt-input {
+                font-size: 1.75rem;
+                padding-left: 2rem;
+            }
+            .mobile-crt-arrow {
+                font-size: 2rem;
+            }
+            .mobile-mode-line {
+                font-size: 1.15rem;
+                margin-top: 0.45rem;
+                padding-left: 2rem;
+            }
+            .mobile-ignition {
+                max-width: 16rem;
+                gap: 0.65rem;
+            }
+            .mobile-ignition-button {
+                width: 8.5rem;
+                height: 8.5rem;
+            }
+            .mobile-ignition-text {
+                font-size: 1.65rem;
+                padding: 0.75rem;
+            }
+            .mobile-links-card {
+                max-width: 11rem;
+                padding: 0.7rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-dark min-h-screen font-crt flex flex-col items-center justify-start xl:justify-center p-4 sm:p-8 relative overflow-x-hidden wood-texture">
+<div class="absolute top-10 left-10 w-32 h-8 bg-duct-tape -rotate-12 shadow-sm border border-gray-400 z-20 opacity-80"></div>
+<div class="absolute bottom-20 right-10 w-40 h-8 bg-duct-tape rotate-12 shadow-sm border border-gray-400 z-20 opacity-80"></div>
+<div class="absolute top-1/2 -left-4 w-24 h-8 bg-duct-tape rotate-45 shadow-sm border border-gray-400 z-20 opacity-80"></div>
+<div class="w-full max-w-5xl relative z-10 flex flex-col gap-4 sm:gap-8 items-center py-2 sm:py-6">
+<div class="bg-caution border-heavy border-black px-4 py-3 sm:p-4 rounded-chunky shadow-hardware rotate-1 transform-gpu w-full max-w-[22rem] sm:max-w-none mobile-header-card">
+<h1 class="font-marker text-3xl sm:text-4xl md:text-6xl text-black tracking-[0.08em] sm:tracking-widest text-center leading-none">SECTOR D COMMAND</h1>
+<p class="font-marker text-lg sm:text-xl text-black text-center mt-2 border-t-4 border-black pt-2 leading-tight">MAIN OPERATIONS: KND 2x4 TECH</p>
+</div>
+<div class="flex flex-col xl:flex-row gap-4 sm:gap-8 w-full items-center justify-center mobile-tight-panel">
+<div class="relative w-full max-w-3xl bg-hardware p-4 sm:p-6 md:p-8 rounded-[28px] sm:rounded-[32px] border-heavy border-black shadow-hardware flex-grow mobile-monitor">
+<div class="absolute top-4 right-8 w-4 h-4 rounded-full bg-red-600 animate-pulse border-2 border-black"></div>
+<div class="absolute top-4 right-16 w-4 h-4 rounded-full bg-green-600 border-2 border-black"></div>
+<div class="relative w-full aspect-[4/3] sm:aspect-video bg-crt-bg rounded-xl overflow-hidden border-4 border-gray-800 shadow-inner mobile-monitor-screen">
+<div class="absolute inset-0 crt-scanlines z-10"></div>
+<div class="absolute inset-0 p-4 sm:p-6 flex flex-col z-0 shadow-crt-glow">
+<p class="text-crt-text text-lg sm:text-xl md:text-2xl mb-2 sm:mb-4 opacity-80 mobile-crt-copy">KND_OS v2.4 ... SYSTEM READY.</p>
+<p class="text-crt-text text-lg sm:text-xl md:text-2xl mb-4 sm:mb-8 opacity-80 mobile-crt-copy">AWAITING QUERY INPUT FOR HAMSTER-CORE SEARCH.</p>
+<div class="flex flex-col mt-auto h-full justify-center">
+<label class="flex items-center w-full gap-4 relative">
+<span class="text-crt-text text-3xl sm:text-4xl md:text-5xl font-bold animate-blink absolute left-0 mobile-crt-arrow">&gt;</span>
+<input autocomplete="off" autofocus="" class="w-full bg-transparent border-none text-crt-text text-2xl sm:text-3xl md:text-5xl font-crt focus:ring-0 focus:outline-none pl-7 sm:pl-8 md:pl-12 tracking-[0.12em] sm:tracking-wider placeholder:text-green-900 mobile-crt-input" spellcheck="false" type="text" value="Treehouse blueprints"/>
+</label>
+<p class="terminal-mode-line text-crt-text text-xl sm:text-2xl md:text-3xl font-crt opacity-80 pl-7 sm:pl-8 md:pl-12 mt-2 sm:mt-3 mobile-mode-line" id="terminal-mode-line">View</p>
+</div>
+<div class="mt-auto flex justify-between items-end border-t-2 border-green-900 border-dashed pt-3 sm:pt-4 opacity-70">
+<p class="text-crt-text text-base sm:text-lg">MEM: OK</p>
+<p class="text-crt-text text-base sm:text-lg">WHEEL: IDLE</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-4 sm:gap-8 items-center xl:items-start min-w-0 w-full max-w-[20rem] xl:max-w-none">
+<div class="bg-gray-800 p-4 sm:p-6 rounded-chunky border-heavy border-black shadow-hardware flex flex-col items-center gap-3 sm:gap-4 relative -rotate-2 mobile-ignition w-full">
+<div class="absolute -top-3 -right-3 w-12 h-6 bg-duct-tape rotate-45 border border-gray-500"></div>
+<h2 class="font-marker text-white text-xl sm:text-2xl text-center">IGNITION</h2>
+<button aria-label="Ignition" class="group relative w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-red-900 border-heavy border-black shadow-[0_12px_0_#000,0_16px_24px_rgba(0,0,0,0.5)] active:translate-y-4 active:shadow-[0_0px_0_#000,0_0px_0px_rgba(0,0,0,0.5)] transition-all duration-75 flex items-center justify-center cursor-crosshair overflow-hidden mobile-ignition-button" data-export-target="/api/export" data-manage-target="/manage" data-view-target="/galaxy" id="ignition-button">
+<div class="absolute inset-2 rounded-full bg-primary flex items-center justify-center border-4 border-red-500">
+<span class="font-punch text-white text-[2rem] sm:text-4xl text-center leading-none uppercase tracking-wide drop-shadow-md p-3 sm:p-4 mobile-ignition-text">ENGAGE HAMSTER-CORE</span>
+</div>
+</button>
+<div class="flex gap-2 mt-2 sm:mt-4" role="group" aria-label="Operations mode">
+<button aria-label="View mode" class="mode-indicator w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-black shadow-[0_0_0_2px_rgba(255,255,255,0.08)]" data-active="true" data-color="#3B82F6" data-mode="view" type="button"></button>
+<button aria-label="Manage mode" class="mode-indicator w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-black shadow-[0_0_0_2px_rgba(255,255,255,0.08)]" data-active="false" data-color="#22C55E" data-mode="manage" type="button"></button>
+<button aria-label="Export mode" class="mode-indicator w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-black shadow-[0_0_0_2px_rgba(255,255,255,0.08)]" data-active="false" data-color="#EC4899" data-mode="export" type="button"></button>
+</div>
+</div>
+<div class="cardboard-texture p-3 sm:p-4 rounded-sm border border-dashed border-gray-600 shadow-lg relative rotate-3 max-w-[220px] sm:max-w-[240px] w-full mobile-links-card">
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-6 bg-duct-tape border border-gray-400 opacity-90"></div>
+<div class="flex flex-col gap-2 mt-2">
+<p class="font-marker text-black text-lg sm:text-xl leading-tight border-b-2 border-black pb-1">Links Logged</p>
+<p class="font-marker text-black text-3xl sm:text-4xl font-bold" id="links-logged-count">...</p>
+</div>
+</div>
+</div>
+</div>
+<footer class="mt-3 text-center text-[10px] sm:text-xs text-black/65 font-crt tracking-[0.16em] uppercase">
+<a class="hover:text-black underline decoration-black/30 underline-offset-2" href="https://gainsec.com/" rel="noreferrer" target="_blank">Made by Jon 'GainSec' Gaines</a>
+</footer>
+</div>
+<script>
+        const numberFormat = new Intl.NumberFormat("en-US");
+        const modeLabels = {
+            view: "View",
+            manage: "Manage",
+            export: "Export",
+        };
+        const ignitionButton = document.getElementById("ignition-button");
+        const linksLoggedCount = document.getElementById("links-logged-count");
+        const terminalModeLine = document.getElementById("terminal-mode-line");
+        const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
+        let currentMode = "view";
+
+        function updateIndicatorStyles() {
+            modeButtons.forEach((button) => {
+                const active = button.dataset.mode === currentMode;
+                button.dataset.active = String(active);
+                button.style.backgroundColor = active ? button.dataset.color : "#000000";
+                button.style.boxShadow = active
+                    ? `0 0 0 2px rgba(255,255,255,0.08), 0 0 12px ${button.dataset.color}`
+                    : "0 0 0 2px rgba(255,255,255,0.08)";
+            });
+        }
+
+        function typeModeText(text) {
+            terminalModeLine.textContent = "";
+            let index = 0;
+            const timer = window.setInterval(() => {
+                terminalModeLine.textContent = text.slice(0, index + 1);
+                index += 1;
+                if (index >= text.length) {
+                    window.clearInterval(timer);
+                }
+            }, 45);
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            updateIndicatorStyles();
+            typeModeText(modeLabels[mode]);
+        }
+
+        function handleIgnition() {
+            const viewTarget = ignitionButton.dataset.viewTarget;
+            const manageTarget = ignitionButton.dataset.manageTarget;
+            const exportTarget = ignitionButton.dataset.exportTarget;
+            if (currentMode === "export") {
+                const link = document.createElement("a");
+                link.href = exportTarget;
+                link.download = "etc-channel-merged-normalized.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                return;
+            }
+            const target = currentMode === "manage" ? manageTarget : viewTarget;
+            document.body.classList.add("page-fade-out");
+            window.setTimeout(() => {
+                window.location.href = target;
+            }, 320);
+        }
+
+        async function loadArchiveStats() {
+            if (!linksLoggedCount) {
+                return;
+            }
+            try {
+                const response = await fetch("/api/stats");
+                const stats = await response.json();
+                linksLoggedCount.textContent = numberFormat.format(stats.total_records || 0);
+            } catch (error) {
+                console.error(error);
+                linksLoggedCount.textContent = "n/a";
+            }
+        }
+
+        updateIndicatorStyles();
+        if (terminalModeLine) {
+            terminalModeLine.textContent = modeLabels[currentMode];
+        }
+        window.addEventListener("pageshow", () => {
+            document.body.classList.remove("page-fade-out");
+        });
+        loadArchiveStats();
+        modeButtons.forEach((button) => {
+            button.addEventListener("click", () => setMode(button.dataset.mode));
+        });
+        if (ignitionButton) {
+            ignitionButton.addEventListener("click", handleIgnition);
+        }
+    </script>
+</body></html>
