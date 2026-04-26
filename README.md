@@ -209,3 +209,6 @@ Mobile Web: Galaxy Search
 ## Web Release Only
 
 This release bundle is intentionally scoped to the deployable web app. The native iOS project is not included here.
+
+## Author
+[Jon 'GainSec' Gaines](https://gainsec.com)
