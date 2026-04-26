@@ -2,7 +2,7 @@
   <img src="docs/assets/sectormap-logo-transparent.png" alt="SectorMap" width="720">
 </p>
 
-SectorMap is a local-first archive browser for security datasets. This release bundle packages the **web app only**: the cinematic `Main Operations` / `Galaxy View` interface, the `Manage` dashboard, SQLite-backed search, export, and multi-database management.
+SectorMap is a local-first archive browser for datasets. This release bundle packages the **web app only**: the cinematic `Main Operations` / `Galaxy View` interface, the `Manage` dashboard, SQLite-backed search, export, and multi-database management.
 
 This bundle does **not** include the iOS app and does **not** ship with a live dataset.
 
